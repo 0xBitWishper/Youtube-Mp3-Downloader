@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube to MP3 Downloader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    #container {
+      background: #fff;
+      padding: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 12px;
+      margin-top: 10px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      box-sizing: border-box;
+    }
+    button {
+      background: #ff0000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #cc0000;
+    }
+    a.download-link {
+      display: inline-block;
+      margin-top: 15px;
+      color: #fff;
+      background: #28a745;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    a.download-link:hover {
+      background: #218838;
+    }
+    .loading {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-left-color: #ff0000;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      color: #dc3545;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f8d7da;
+      border-radius: 5px;
+      border: 1px solid #f5c6cb;
+    }
+    .success {
+      color: #28a745;
+      margin-top: 10px;
+    }
+    .log-container {
+      margin-top: 20px;
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+    }
+    .log-entry {
+      margin: 5px 0;
+      font-size: 14px;
+      word-break: break-word;
+    }
+    .log-info {
+      color: #0066cc;
+    }
+    .log-error {
+      color: #dc3545;
+    }
+    .debug-toggle {
+      margin-top: 20px;
+      text-align: right;
+      font-size: 14px;
+      color: #6c757d;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h2>YouTube to MP3 Downloader</h2>
+    <p>Paste a YouTube URL or video ID below:</p>
+    <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+    <button onclick="downloadMP3()">Convert to MP3</button>
+    <div id="result"></div>
+    
+    <div class="debug-toggle" onclick="toggleDebugPanel()">Debug Log ▼</div>
+    <div id="debug-panel" class="log-container" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Log system
+    function logInfo(message) {
+      console.log("[INFO] " + message);
+      addLogEntry(message, "log-info");
+    }
+    
+    function logError(message) {
+      console.error("[ERROR] " + message);
+      addLogEntry(message, "log-error");
+    }
+    
+    function addLogEntry(message, className) {
+      const logPanel = document.getElementById("debug-panel");
+      const entry = document.createElement("div");
+      entry.className = `log-entry ${className}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logPanel.appendChild(entry);
+      logPanel.scrollTop = logPanel.scrollHeight;
+    }
+    
+    function toggleDebugPanel() {
+      const panel = document.getElementById("debug-panel");
+      const toggle = document.querySelector(".debug-toggle");
+      if (panel.style.display === "none") {
+        panel.style.display = "block";
+        toggle.innerHTML = "Debug Log ▲";
+      } else {
+        panel.style.display = "none";
+        toggle.innerHTML = "Debug Log ▼";
+      }
+    }
+    
+    async function downloadMP3() {
+      const inputValue = document.getElementById("videoUrl").value.trim();
+      const resultDiv = document.getElementById("result");
+      
+      if (!inputValue) {
+        resultDiv.innerHTML = `<p class="error">Please enter a YouTube URL or video ID</p>`;
+        logError("Empty input value");
+        return;
+      }
+
+      // Show loading spinner
+      resultDiv.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      `;
+      
+      logInfo(`Processing input: ${inputValue}`);
+
+      try {
+        logInfo(`Sending request to server for: ${inputValue}`);
+        const startTime = Date.now();
+        const response = await fetch(`http://localhost:3000/api/download?id=${encodeURIComponent(inputValue)}`);
+        const responseTime = Date.now() - startTime;
+        logInfo(`Server responded in ${responseTime}ms with status: ${response.status}`);
+        
+        const data = await response.json();
+        logInfo(`Response data: ${JSON.stringify(data)}`);
+
+        if (data.link) {
+          logInfo(`Successfully got MP3 link: ${data.link}`);
+          resultDiv.innerHTML = `
+            <div class="success">
+              <p><strong>Title:</strong> ${data.title}</p>
+              <a href="${data.link}" class="download-link" target="_blank">Download MP3</a>
+            </div>
+          `;
+        } else if (data.error) {
+          logError(`Error from server: ${data.error}`);
+          resultDiv.innerHTML = `
+            <div class="error">
+              <p><strong>Error:</strong> ${data.error}</p>
+              ${data.message ? `<p><strong>Message:</strong> ${data.message}</p>` : ''}
+              ${data.statusCode ? `<p><strong>Status Code:</strong> ${data.statusCode}</p>` : ''}
+            </div>
+          `;
+        } else {
+          logError("No link found in response");
+          resultDiv.innerHTML = `<p class="error">Failed to fetch MP3 link. Server response didn't contain expected data.</p>`;
+        }
+      } catch (error) {
+        logError(`Client error: ${error.message}`);
+        resultDiv.innerHTML = `
+          <div class="error">
+            <p><strong>Error:</strong> Failed to connect to server</p>
+            <p><strong>Details:</strong> ${error.message}</p>
+            <p>Make sure the server is running at http://localhost:3000</p>
+          </div>
+        `;
+      }
+    }
+
+    // Allow pressing Enter key to trigger download
+    document.getElementById("videoUrl").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        downloadMP3();
+      }
+    });
+    
+    // Initialize with a welcome message
+    logInfo("YouTube to MP3 Downloader initialized");
+  </script>
+</body>
+</html>
