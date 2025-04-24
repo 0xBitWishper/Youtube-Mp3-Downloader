@@ -1,4 +1,4 @@
-# YouTube to MP3 Downloader
+# YouTube to MP3 Downloader With NodeJs
 
 A simple web application that allows users to download MP3 audio from YouTube videos using RapidAPI's YouTube MP3 Audio Video Downloader service.
 
@@ -11,10 +11,6 @@ A simple web application that allows users to download MP3 audio from YouTube vi
 - Real-time download with progress indication
 - Debug logging panel for troubleshooting
 
-## Screenshot
-
-(Add screenshots of your application here)
-
 ## Installation
 
 ### Prerequisites
@@ -26,8 +22,8 @@ A simple web application that allows users to download MP3 audio from YouTube vi
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/ytd4.git
-   cd ytd4
+   git clone https://github.com/0xBitWishper/Youtube-Mp3-Downloader.git
+   cd Youtube-Mp3-Downloader
    ```
 
 2. Install dependencies:
@@ -115,6 +111,19 @@ To use your own API key:
 
 ISC
 
+## Copyright
+
+© 2025 0xBit. All rights reserved.
+
+## Support Development
+
+If you find this tool useful, consider supporting the development by donating TON:
+
+```
+UQCcYieLec0K-xwbvEoqYxMu3IMTDUTSj3jqhW8o5lKtMsLw
+```
+
 ## Disclaimer
 
 This tool is for personal use only. Please respect YouTube's terms of service and copyright laws. Do not download copyrighted content without permission.
+EOL
